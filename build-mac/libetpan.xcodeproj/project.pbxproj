@@ -672,6 +672,7 @@
 		C6F9EDAD1053395A0059C3BA /* libexpat.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C6F9EDAC1053395A0059C3BA /* libexpat.dylib */; };
 		C6F9EDB2105339650059C3BA /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C6F9EDB1105339650059C3BA /* libcurl.dylib */; };
 		C6F9EDBE105339EA0059C3BA /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C6F9EDBD105339EA0059C3BA /* libcrypto.dylib */; };
+		E48AF1FC1549F4C100C5FD22 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E48AF1FB1549F4C100C5FD22 /* SystemConfiguration.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1196,6 +1197,7 @@
 		C6F9EDAC1053395A0059C3BA /* libexpat.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libexpat.dylib; path = /usr/lib/libexpat.dylib; sourceTree = "<absolute>"; };
 		C6F9EDB1105339650059C3BA /* libcurl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.dylib; path = /usr/lib/libcurl.dylib; sourceTree = "<absolute>"; };
 		C6F9EDBD105339EA0059C3BA /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = /usr/lib/libcrypto.dylib; sourceTree = "<absolute>"; };
+		E48AF1FB1549F4C100C5FD22 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1211,6 +1213,7 @@
 				C6F9EDBE105339EA0059C3BA /* libcrypto.dylib in Frameworks */,
 				C6EFB8AE1433F58500F805C0 /* CoreFoundation.framework in Frameworks */,
 				C6EFB8B41433F5A400F805C0 /* CoreServices.framework in Frameworks */,
+				E48AF1FC1549F4C100C5FD22 /* SystemConfiguration.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1236,6 +1239,7 @@
 		0867D691FE84028FC02AAC07 /* libetpan */ = {
 			isa = PBXGroup;
 			children = (
+				E48AF1FB1549F4C100C5FD22 /* SystemConfiguration.framework */,
 				08FB77AEFE84172EC02AAC07 /* libetpan */,
 				32C88DFF0371C24200C91783 /* Other Sources */,
 				089C1665FE841158C02AAC07 /* Resources */,

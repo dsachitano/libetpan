@@ -6,7 +6,7 @@ if test ! -d libetpan.xcodeproj ; then
 fi
 
 cd ..
-./autogen.sh
+./autogen.sh --with-openssl=no --with-sasl=no
 make stamp-prepare-target
 make libetpan-config.h
 cd build-mac

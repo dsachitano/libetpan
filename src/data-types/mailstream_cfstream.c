@@ -46,7 +46,7 @@
 
 #include <pthread.h>
 
-int mailstream_cfstream_enabled = 0;
+int mailstream_cfstream_enabled = 1;
 int mailstream_cfstream_voip_enabled = 0;
 
 enum {

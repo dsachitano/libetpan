@@ -39,7 +39,7 @@ noinst_PROGRAMS = smime decrypt pgp frm frm-tree frm-simple	\
 # after AM_CPPFLAGS, so we have to frob CFLAGS.
 CFLAGS += -ULIBETPAN_DLL
 AM_CPPFLAGS = -I$(top_builddir)/include
-LDADD = ../src/libetpan.la
+LDADD = ../build-mac/build/Debug/libetpan.framework/libetpan
 
 FRMCOMMON = frm-common.h frm-common.c option-parser.h option-parser.c
 
