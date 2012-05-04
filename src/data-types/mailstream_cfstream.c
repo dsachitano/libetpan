@@ -33,7 +33,6 @@
 
 #if HAVE_CFNETWORK
 #include <CoreFoundation/CoreFoundation.h>
-#include <SystemConfiguration/SystemConfiguration.h>
 #include <TargetConditionals.h>
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
 #include <CFNetwork/CFNetwork.h>
@@ -41,8 +40,6 @@
 #include <CoreServices/CoreServices.h>
 #endif
 #endif
-
-
 
 #include <pthread.h>
 
@@ -104,7 +101,6 @@ struct mailstream_cfstream_data {
   int ssl_level;
   int ssl_is_server;
   char * ssl_peer_name;
-  const char * hostname;
   int ssl_certificate_verification_mask;
 };
 #endif
@@ -151,7 +147,6 @@ static struct mailstream_cfstream_data * cfstream_data_new(CFReadStreamRef readS
   cfstream_data->writeStream = (CFWriteStreamRef) CFRetain(writeStream);
   cfstream_data->ssl_level = MAILSTREAM_CFSTREAM_SSL_LEVEL_NEGOCIATED_SSL;
   pthread_mutex_init(&cfstream_data->runloop_lock, NULL);
-  cfstream_data->hostname = NULL;
   
   return cfstream_data;
 }
@@ -160,7 +155,6 @@ static void cfstream_data_free(struct mailstream_cfstream_data * cfstream_data)
 {
   cfstream_data_close(cfstream_data);
   pthread_mutex_destroy(&cfstream_data->runloop_lock);
-  if (cfstream_data->hostname) free((char*)cfstream_data->hostname);
   free(cfstream_data->ssl_peer_name);
   free(cfstream_data);
 }
@@ -445,8 +439,6 @@ mailstream_low * mailstream_low_cfstream_open_voip(const char * hostname, int16_
   
   cfstream_data = cfstream_data_new(readStream, writeStream);
   s = mailstream_low_new(cfstream_data, mailstream_cfstream_driver);
-    
-  cfstream_data->hostname = strdup(hostname);
   
   //fprintf(stderr, "open %s %i -> %p\n", hostname, port, s);
   
@@ -608,81 +600,21 @@ enum {
   WAIT_RUNLOOP_EXIT_TIMEOUT,
 };
 
-static void 
-host_reachability_callback( SCNetworkReachabilityRef    target,
-                        SCNetworkConnectionFlags    flags,
-                        void *                      info )
-{
-    if (!target) return;
-    if (!info) return;
-    
-    mailstream_low * low_stream = (mailstream_low*) info;
-
-    /* fprintf(stderr, "%c%c%c%c%c%c%c\n",
-            (flags & kSCNetworkFlagsTransientConnection)  ? 't' : '-',
-            (flags & kSCNetworkFlagsReachable)            ? 'r' : '-',
-            (flags & kSCNetworkFlagsConnectionRequired)   ? 'c' : '-',
-            (flags & kSCNetworkFlagsConnectionAutomatic)  ? 'C' : '-',
-            (flags & kSCNetworkFlagsInterventionRequired) ? 'i' : '-',
-            (flags & kSCNetworkFlagsIsLocalAddress)       ? 'l' : '-',
-            (flags & kSCNetworkFlagsIsDirect)             ? 'd' : '-'
-            );
-     */
-    
-   if ( (flags & kSCNetworkFlagsTransientConnection) && 
-       (flags & kSCNetworkFlagsConnectionRequired) )  
-       {
-       struct mailstream_cfstream_data * cfstream_data = NULL;
-       mailstream_low * s = NULL;
-       
-       s = info;
-       if (!s) return;
-       cfstream_data = (struct mailstream_cfstream_data *) s->data;
-       if (cfstream_data && cfstream_data->state && !cfstream_data->cancelled) cancelPerform(low_stream);
-       }
-}
-
 static int wait_runloop(mailstream_low * s, int wait_state)
 {
   struct mailstream_cfstream_data * cfstream_data;
-  int read_scheduled = 0;
-  int write_scheduled = 0;
-  int reachablity_scheduled = 0;
-  int error = WAIT_RUNLOOP_EXIT_NO_ERROR;
-  int err = 0;
-  SCNetworkReachabilityRef        reachability_target;
-  SCNetworkReachabilityContext    reachability_context;
-  Boolean ok = false;
+  int read_scheduled;
+  int write_scheduled;
+  int error;
   
   setup_runloop(s);
-    
+  
   cfstream_data = (struct mailstream_cfstream_data *) s->data;
   cfstream_data->state = wait_state;
-    
-    
-    
-  reachability_context.version         = 0;
-  reachability_context.info            = (void *) s;
-  reachability_context.retain          = NULL;
-  reachability_context.release         = NULL;
-  reachability_context.copyDescription = NULL;
-    
-  reachability_target = SCNetworkReachabilityCreateWithName(NULL, cfstream_data->hostname);
-  if (reachability_target == NULL) {
-    err = SCError();
-  }
-    
-  // Set our callback and install on the runloop.
-    
-  if (err == 0) {
-    ok = SCNetworkReachabilitySetCallback(reachability_target,  host_reachability_callback, &reachability_context);
-    if (!ok)  err = SCError();
-  }
-  if (err == 0) {
-    ok = SCNetworkReachabilityScheduleWithRunLoop(reachability_target, cfstream_data->runloop, kCFRunLoopDefaultMode );
-    if (!ok) err = SCError();
-  }
-  if (err == 0) reachablity_scheduled = 1;
+  
+  read_scheduled = 0;
+  write_scheduled = 0;
+  error = WAIT_RUNLOOP_EXIT_NO_ERROR;
   
   switch (wait_state) {
     case STATE_WAIT_OPEN:
@@ -802,10 +734,6 @@ static int wait_runloop(mailstream_low * s, int wait_state)
     }
   }
   
-  if (reachablity_scheduled) {
-    SCNetworkReachabilityUnscheduleFromRunLoop(reachability_target, cfstream_data->runloop, kCFRunLoopDefaultMode);
-    CFRelease(reachability_target);
-  }
   if (read_scheduled) {
     CFReadStreamUnscheduleFromRunLoop(cfstream_data->readStream, cfstream_data->runloop, kCFRunLoopDefaultMode);
   }
