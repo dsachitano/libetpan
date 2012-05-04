@@ -660,6 +660,8 @@ static int wait_runloop(mailstream_low * s, int wait_state)
   }
   
   while (1) {
+    CFStreamStatus write_status = 0;
+    CFStreamStatus read_status = 0;
     struct timeval timeout;
     CFTimeInterval delay;
     int r;
@@ -717,6 +719,23 @@ static int wait_runloop(mailstream_low * s, int wait_state)
     }
     delay = (CFTimeInterval) timeout.tv_sec + (CFTimeInterval) timeout.tv_usec / (CFTimeInterval) 1e6;
     
+    if (read_scheduled) {
+      read_status = CFReadStreamGetStatus(cfstream_data->readStream);
+      if (read_status == kCFStreamStatusError) {
+        cfstream_data->cancelled = true;
+        error = WAIT_RUNLOOP_EXIT_CANCELLED;
+        break;
+       }
+    }
+    if (write_scheduled) {
+      write_status = CFWriteStreamGetStatus(cfstream_data->writeStream);
+      if (write_status == kCFStreamStatusError) {
+        cfstream_data->cancelled = true;
+        error = WAIT_RUNLOOP_EXIT_CANCELLED;
+        break;
+      }
+    }
+      
     r = CFRunLoopRunInMode(kCFRunLoopDefaultMode, delay, true);
     if (r == kCFRunLoopRunTimedOut) {
       error = WAIT_RUNLOOP_EXIT_TIMEOUT;
